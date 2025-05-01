@@ -13,7 +13,7 @@ import java.util.List;
 public class WaiterController {
     private final WaiterServiceImpl waiterService;
 
-    @GetMapping("/employees")
+    @GetMapping("/waiters")
     public List<Waiter> allWaiters() {
         return waiterService.allWaiters();
     }
