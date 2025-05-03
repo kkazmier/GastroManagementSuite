@@ -9,7 +9,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Order extends BaseEntity {
+public class RestaurantOrder extends BaseEntity {
     @ManyToOne
     private Waiter waiter;
 
