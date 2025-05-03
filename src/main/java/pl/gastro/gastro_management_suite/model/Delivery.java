@@ -9,7 +9,7 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-public class Delivery extends Order {
+public class Delivery extends RestaurantOrder {
     @OneToOne
     private Address address;
 
