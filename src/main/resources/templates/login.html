@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pl" x-data="loginForm()" x-init="init()">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <title>Logowanie</title>
+</head>
+<body>
+<div x-show="!loggedIn">
+    <form @submit.prevent="submit()">
+        <input type="text" placeholder="Użytkownik" x-model="username" required>
+        <input type="password" placeholder="Hasło" x-model="password" required>
+        <button type="submit">Zaloguj</button>
+        <p x-show="error" style="color:red">Błąd logowania</p>
+    </form>
+</div>
+<script>
+    function loginForm() {
+        return {
+            username: '',
+            password: '',
+            error: false,
+            loggedIn: false,
+            init() {
+                const token = localStorage.getItem('jwt');
+                if (token) this.loggedIn = true;
+            },
+            async submit() {
+                this.error = false;
+                try {
+                    const res = await fetch('https://api.example.com/api/auth/login', {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({ username: this.username, password: this.password })
+                    });
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+                    localStorage.setItem('jwt', data.token);
+                    this.loggedIn = true;
+                } catch {
+                    this.error = true;
+                }
+            }
+        }
+    }
+</script>
+</body>
+</html>
