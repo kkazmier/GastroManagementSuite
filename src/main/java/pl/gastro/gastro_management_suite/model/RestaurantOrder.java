@@ -10,9 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RestaurantOrder extends BaseEntity {
-    @ManyToOne
-    private Waiter waiter;
-
     @ManyToMany
     private List<MenuItem> items;
 
