@@ -15,5 +15,4 @@ public class RestaurantOrder extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
-
 }

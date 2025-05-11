@@ -16,18 +16,23 @@ import pl.gastro.gastro_management_suite.dto.AuthResponse;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private AuthenticationManager authManager;
+    private final AuthenticationManager authManager;
+    private final JwtTokenProvider tokenProvider;
 
-    @Autowired
-    private JwtTokenProvider tokenProvider; // Twoja klasa do generowania JWT
+    public AuthController(AuthenticationManager authManager,
+                          JwtTokenProvider tokenProvider) {
+        this.authManager = authManager;
+        this.tokenProvider = tokenProvider;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
         Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(), request.getPassword()
+                )
         );
-        String token = tokenProvider.generateToken(String.valueOf(auth));
+        String token = tokenProvider.generateToken(auth.getName());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }

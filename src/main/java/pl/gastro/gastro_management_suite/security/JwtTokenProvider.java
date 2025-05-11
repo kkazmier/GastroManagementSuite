@@ -1,8 +1,11 @@
 package pl.gastro.gastro_management_suite.security;
 
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -13,47 +16,46 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    private final SecretKey secretKey;
+    private final long validityMs;
 
-    @Value("${jwt.expiration-ms}")
-    private long jwtExpirationMs;
-
-    private SecretKey getSecretKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
-        return Keys.hmacShaKeyFor(keyBytes);
+    public JwtTokenProvider(
+            @Value("${jwt.secret}") String base64Secret,
+            @Value("${jwt.expiration-ms}") long validityMs) {
+        this.secretKey = Jwts.SIG.HS256.key().build();
+        this.validityMs = validityMs;
     }
 
     public String generateToken(String username) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+        Date now    = new Date();
+        Date expiry = new Date(now.getTime() + validityMs);
 
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(getSecretKey())
+                .expiration(expiry)
+                .signWith(secretKey)
                 .compact();
     }
 
     public String getUsernameFromToken(String token) {
-        JwtParser parser = Jwts.parser()
-                .verifyWith(getSecretKey())
-                .build();
-
-        Claims claims = parser.parseSignedClaims(token).getPayload();
-        return claims.getSubject();
+        // Używamy verifyWith(...) zamiast deprecated setSigningKey(...)
+        Jws<Claims> jws = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token);
+        return jws.getBody().getSubject();
     }
 
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                    .verifyWith(getSecretKey())
+                    .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException ex) {
-            // Logowanie błędu lub dalsza obsługa
+            // tu możesz zalogować szczegóły błędu, np. log.error("Invalid JWT", ex);
             return false;
         }
     }

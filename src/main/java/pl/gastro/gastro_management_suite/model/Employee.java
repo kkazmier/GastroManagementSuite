@@ -1,9 +1,6 @@
 package pl.gastro.gastro_management_suite.model;
 
-import jakarta.persistence.DiscriminatorColumn;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,8 +9,11 @@ import lombok.Setter;
 @DiscriminatorColumn(name = "employee_type")
 @Getter
 @Setter
-public abstract class Employee extends BaseEntity {
+public class Employee extends BaseEntity {
     private String FullName;
     private String email;
     private String phone;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 }
