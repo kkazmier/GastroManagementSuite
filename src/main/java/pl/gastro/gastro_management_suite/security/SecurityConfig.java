@@ -17,6 +17,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private static final String[] SPRING_WHITELIST = {
+            "/api/auth/**", "/webjars/**", "/css/**", "/js/**",
+            "/swagger-ui/**",            // statyczne zasoby Swagger UI
+            "/v3/api-docs/**",           // definicje OpenAPI (JSON/YAML)
+            "/swagger-ui.html",          // główny punkt wejścia UI
+            "/swagger-resources/**",     // zasoby wewnętrzne Swagger
+            "/webjars/**"                // biblioteki front-end (JS/CSS)
+    };
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -25,7 +33,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/webjars/**", "/css/**", "/js/**").permitAll()
+                        .requestMatchers(SPRING_WHITELIST).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
