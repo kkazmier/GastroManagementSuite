@@ -1,10 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <title>Gastro Management Suite</title>
 </head>
 <body>
+<div x-data="employeesComponent()" x-init="load()">
+    <ul>
+        <template x-for="emp in employees" :key="emp.id">
+            <li x-text="emp.fullName"></li>
+        </template>
+    </ul>
+</div>
 
+<script>
+    function employeesComponent() {
+        return {
+            employees: [],
+            async load() {
+                const res = await fetch('/api/employees');
+                this.employees = await res.json();
+            }
+        }
+    }
+</script>
 </body>
 </html>
