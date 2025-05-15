@@ -8,13 +8,13 @@ import lombok.Data;
 @Data
 public class EmployeeDto {
     private Long id;
-    @NotBlank
+    //@NotBlank
     private String fullName;
-    @Email
-    @NotBlank
+    //@Email
+    //@NotBlank
     private String email;
-    @NotBlank
+    //@NotBlank
     private String phone;
-    @NotBlank
+    //@NotBlank
     private String role;
 }
