@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" x-data="employeeApp()" x-init="loadEmployees()">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Management</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .menu { background: #333; padding: 1rem; color: #fff; display: flex; gap: 1rem; }
+    .menu button { background: #555; border: none; color: #fff; padding: 0.5rem 1rem; cursor: pointer; }
+    .menu button:hover { background: #777; }
+    .container { display: flex; padding: 1rem; }
+    .list { flex: 1; margin-right: 2rem; }
+    .list table { width: 100%; border-collapse: collapse; }
+    .list th, .list td { padding: 0.5rem; border: 1px solid #ccc; }
+    .list tr:nth-child(odd) { background: #f9f9f9; }
+    .list tr:nth-child(even) { background: #fff; }
+    .list tr:hover { background: #e0e0e0; cursor: pointer; }
+    .form { flex: 1; max-width: 400px; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.25rem; }
+    .form-group input { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<div class="menu">
+  <button @click="createEmployee()">Dodaj</button>
+  <button @click="deleteEmployee()" :disabled="!selected.id">Usuń</button>
+  <button @click="updateEmployee()" :disabled="!selected.id">Edytuj</button>
+  <button @click="loadEmployees()">Lista pracowników</button>
+</div>
+
+<div class="container">
+  <div class="list">
+    <table>
+      <thead>
+      <tr>
+        <th>Imię i nazwisko</th>
+        <th>Email</th>
+        <th>Telefon</th>
+        <th>Funkcja</th>
+      </tr>
+      </thead>
+      <tbody>
+      <template x-for="emp in employees" :key="emp.id">
+        <tr @click="selectEmployee(emp)" :class="{ 'selected': emp.id === selected.id }">
+          <td x-text="emp.fullName"></td>
+          <td x-text="emp.email"></td>
+          <td x-text="emp.phone"></td>
+          <td x-text="emp.role"></td>
+        </tr>
+      </template>
+      </tbody>
+    </table>
+  </div>
+  <div class="form">
+    <div class="form-group">
+      <label for="fullName">Imię i nazwisko</label>
+      <input id="fullName" type="text" x-model="selected.fullName" />
+    </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input id="email" type="email" x-model="selected.email" />
+    </div>
+    <div class="form-group">
+      <label for="phone">Telefon</label>
+      <input id="phone" type="text" x-model="selected.phone" />
+    </div>
+    <div class="form-group">
+      <label for="role">Funkcja</label>
+      <input id="role" type="text" x-model="selected.role" />
+    </div>
+  </div>
+</div>
+
+<script>
+  function employeeApp() {
+    return {
+      employees: [],
+      selected: { id: null, fullName: '', email: '', phone: '', role: '' },
+      apiUrl: '/api/employees',
+      async loadEmployees() {
+        try {
+          let res = await fetch(this.apiUrl);
+          this.employees = await res.json();
+          this.clearSelection();
+        } catch (e) {
+          alert('Błąd ładowania pracowników');
+        }
+      },
+      selectEmployee(emp) {
+        this.selected = { ...emp };
+      },
+      clearSelection() {
+        this.selected = { id: null, fullName: '', email: '', phone: '', role: '' };
+      },
+      async createEmployee() {
+        try {
+          let payload = { fullName: this.selected.fullName, email: this.selected.email, phone: this.selected.phone, role: this.selected.role };
+          let res = await fetch(this.apiUrl, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          });
+          if (res.ok) this.loadEmployees(); else throw new Error();
+        } catch {
+          alert('Błąd tworzenia pracownika');
+        }
+      },
+      async updateEmployee() {
+        if (!this.selected.id) return;
+        try {
+          let res = await fetch(`${this.apiUrl}/${this.selected.id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(this.selected)
+          });
+          if (res.ok) this.loadEmployees(); else throw new Error();
+        } catch {
+          alert('Błąd edycji pracownika');
+        }
+      },
+      async deleteEmployee() {
+        if (!this.selected.id) return;
+        try {
+          let res = await fetch(`${this.apiUrl}/${this.selected.id}`, { method: 'DELETE' });
+          if (res.ok) this.loadEmployees(); else throw new Error();
+        } catch {
+          alert('Błąd usuwania pracownika');
+        }
+      }
+    }
+  }
+</script>
+</body>
+</html>
