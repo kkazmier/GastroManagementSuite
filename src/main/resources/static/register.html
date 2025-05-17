@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html x-data="auth()" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <title>Rejestracja</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <script src="js/auth.js" defer></script>
+</head>
+<body>
+<div class="container">
+  <h2>Rejestracja</h2>
+  <template x-if="error">
+    <p class="error" x-text="error"></p>
+  </template>
+  <form @submit.prevent="register()">
+    <label>Nazwa użytkownika:</label>
+    <input type="text" x-model="username" required>
+    <label>Hasło:</label>
+    <input type="password" x-model="password" required>
+    <button type="submit">Zarejestruj</button>
+  </form>
+</div>
+</body>
+</html>

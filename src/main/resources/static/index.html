@@ -1,29 +1,16 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html>
 <head>
     <meta charset="UTF-8">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <title>Gastro Management Suite</title>
+    <title>GastroManagementSuite</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/alpinejs" defer></script>
 </head>
 <body>
-<div x-data="employeesComponent()" x-init="load()">
-    <ul>
-        <template x-for="emp in employees" :key="emp.id">
-            <li x-text="emp.fullName"></li>
-        </template>
-    </ul>
+<div class="container">
+    <h1>Witaj w GastroManagementSuite</h1>
+    <a href="login.html">Zaloguj się</a> |
+    <a href="register.html">Zarejestruj</a>
 </div>
-
-<script>
-    function employeesComponent() {
-        return {
-            employees: [],
-            async load() {
-                const res = await fetch('/api/employees');
-                this.employees = await res.json();
-            }
-        }
-    }
-</script>
 </body>
 </html>
