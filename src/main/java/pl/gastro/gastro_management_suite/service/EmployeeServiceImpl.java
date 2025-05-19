@@ -1,11 +1,13 @@
 package pl.gastro.gastro_management_suite.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.gastro.gastro_management_suite.dto.EmployeeDto;
 import pl.gastro.gastro_management_suite.model.Employee;
 import pl.gastro.gastro_management_suite.repository.EmployeeRepository;
+import pl.gastro.gastro_management_suite.security.RegisterRequest;
 import pl.gastro.gastro_management_suite.util.EmployeeMapper;
 import pl.gastro.gastro_management_suite.util.ResourceNotFoundException;
 
@@ -19,6 +21,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository repository;
     private final EmployeeMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional(readOnly = true)
@@ -61,4 +64,40 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
         repository.deleteById(id);
     }
+
+    @Override
+    public EmployeeDto findByUsername(String username) {
+        return null;
+    }
+
+    @Transactional
+    public EmployeeDto register(RegisterRequest req) {
+        // 1) Walidacja: unikalność username i email
+        if (repository.existsByFullName(req.getUsername())) {
+            throw new IllegalArgumentException("Username już istnieje: " + req.getUsername());
+        }
+        if (repository.existsByEmail(req.getEmail())) {
+            throw new IllegalArgumentException("Email już istnieje: " + req.getEmail());
+        }
+
+        // 2) Mapowanie DTO -> encja
+        Employee employee = new Employee();
+        employee.setFullName(req.getUsername());
+        employee.setPassword(passwordEncoder.encode(req.getPassword()));
+        employee.setEmail(req.getEmail());
+
+        Employee saved = repository.save(employee);
+
+        // 4) Mapowanie encja -> DTO
+        EmployeeDto dto = new EmployeeDto();
+        dto.setId(saved.getId());
+        dto.setFullName(saved.getFullName());
+        dto.setEmail(saved.getEmail());
+
+        // nie przekazujemy hasła!
+
+        return dto;
+    }
+
+
 }

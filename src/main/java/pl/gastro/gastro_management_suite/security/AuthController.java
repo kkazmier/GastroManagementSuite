@@ -2,38 +2,68 @@ package pl.gastro.gastro_management_suite.security;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pl.gastro.gastro_management_suite.dto.AuthRequest;
-import pl.gastro.gastro_management_suite.dto.AuthResponse;
-import pl.gastro.gastro_management_suite.dto.EmployeeRegistrationDto;
+import pl.gastro.gastro_management_suite.dto.*;
+import pl.gastro.gastro_management_suite.model.Employee;
+import pl.gastro.gastro_management_suite.repository.EmployeeRepository;
+import pl.gastro.gastro_management_suite.service.EmployeeService;
+import pl.gastro.gastro_management_suite.service.EmployeeServiceImpl;
 
 @RestController
 @RequestMapping("/api/auth")
 @AllArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final PasswordEncoder passwordEncoder;
+    private final EmployeeServiceImpl employeeService;
     private final AuthenticationManager authManager;
     private final JwtTokenProvider tokenProvider;
+    private final EmployeeRepository employeeRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid EmployeeRegistrationDto dto) {
-        authService.register(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<EmployeeDto> register(@Valid @RequestBody RegisterRequest req) {
+        Employee e = new Employee();
+        e.setUsername(req.getUsername());
+        e.setFullName(req.getFullName());
+        e.setEmail(req.getEmail());
+
+        String plain = req.getPassword();
+        System.out.println("Rejestruję użytkownika" + req.getUsername() +" z haslem: " +plain);
+
+        e.setPassword(passwordEncoder.encode(req.getPassword()));
+        employeeRepository.save(e);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest req) {
-        Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword()));
-        String token = tokenProvider.generateToken(auth.getName());
-        return ResponseEntity.ok(new AuthResponse(token));
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
+        try {
+            Authentication auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            req.getUsername(),
+                            req.getPassword()
+                    )
+            );
+            // Generujemy token JWT na podstawie zalogowanego użytkownika
+            String token = tokenProvider.generateToken(String.valueOf(auth));
+            // Opcjonalnie zwróć też dane użytkownika:
+            EmployeeDto userDto = employeeService.findByUsername(req.getUsername());
+
+            return ResponseEntity.ok(new JwtAuthResponse(token, userDto));
+        } catch (AuthenticationException ex) {
+            // 401 Unauthorized, hasło lub użytkownik niepoprawne
+            return ResponseEntity
+                    .status(401)
+                    .body(new JwtAuthResponse.ErrorResponse("Niepoprawne dane logowania"));
+        }
     }
 }

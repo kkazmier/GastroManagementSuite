@@ -17,4 +17,8 @@ public class EmployeeDto {
     private String phone;
     //@NotBlank
     private String role;
+
+
+    private String password;
+
 }

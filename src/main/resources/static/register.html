@@ -16,8 +16,16 @@
   <form @submit.prevent="register()">
     <label>Nazwa użytkownika:</label>
     <input type="text" x-model="username" required>
+
     <label>Hasło:</label>
     <input type="password" x-model="password" required>
+
+    <label>Imię i nazwisko:</label>
+    <input type="text" x-model="fullName" required>
+
+    <label>Email:</label>
+    <input type="email" x-model="email" required>
+
     <button type="submit">Zarejestruj</button>
   </form>
 </div>

@@ -14,7 +14,7 @@ public class EmployeeMapper {
         e.setFullName(dto.getFullName());
         e.setEmail(dto.getEmail());
         e.setPhone(dto.getPhone());
-        e.setRole(Role.valueOf(dto.getRole()));
+        //e.setRole(Role.valueOf(dto.getRole()));
         return e;
     }
 
@@ -25,7 +25,7 @@ public class EmployeeMapper {
         dto.setFullName(entity.getFullName());
         dto.setEmail(entity.getEmail());
         dto.setPhone(entity.getPhone());
-        dto.setRole(entity.getRole().name());
+        //dto.setRole(entity.getRole().name());
         return dto;
     }
 }

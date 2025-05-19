@@ -3,7 +3,6 @@ package pl.gastro.gastro_management_suite.security;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pl.gastro.gastro_management_suite.dto.EmployeeRegistrationDto;
 import pl.gastro.gastro_management_suite.mapper.EmployeeMapper;
 import pl.gastro.gastro_management_suite.model.Employee;
 import pl.gastro.gastro_management_suite.repository.EmployeeRepository;

@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MenuItem extends BaseEntity {
+    private String name;
     private BigDecimal price;
     private String description;
 }

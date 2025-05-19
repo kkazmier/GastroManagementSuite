@@ -2,6 +2,7 @@ package pl.gastro.gastro_management_suite.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,7 +30,12 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+
+                        .requestMatchers(HttpMethod.GET, "/api/employees")
+                        .permitAll()
                         .requestMatchers(
+
+                                "/api/auth/**",
                                 "/login.html", "/register.html", "/css/**", "/js/**",
                                 "/api/auth/login", "api/auth/register",
                                 "/swagger-ui/**",

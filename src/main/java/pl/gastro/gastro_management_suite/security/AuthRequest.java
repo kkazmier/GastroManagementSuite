@@ -1,4 +1,4 @@
-package pl.gastro.gastro_management_suite.dto;
+package pl.gastro.gastro_management_suite.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
