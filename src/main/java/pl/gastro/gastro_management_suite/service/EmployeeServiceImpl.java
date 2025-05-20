@@ -1,6 +1,11 @@
 package pl.gastro.gastro_management_suite.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +22,11 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 @Transactional
-public class EmployeeServiceImpl implements EmployeeService {
+public class EmployeeServiceImpl implements EmployeeService, UserDetailsService {
 
     private final EmployeeRepository repository;
     private final EmployeeMapper mapper;
+    @Lazy
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -99,5 +105,16 @@ public class EmployeeServiceImpl implements EmployeeService {
         return dto;
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String username)
+            throws UsernameNotFoundException {
+        Employee e = repository
+                .findByUsername(username);
 
+        return User.builder()
+                .username(e.getUsername())
+                .password(e.getPassword())
+                //.roles(e.getRole().name())
+                .build();
+    }
 }
