@@ -26,7 +26,6 @@ public class EmployeeServiceImpl implements EmployeeService, UserDetailsService 
 
     private final EmployeeRepository repository;
     private final EmployeeMapper mapper;
-    @Lazy
     private final PasswordEncoder passwordEncoder;
 
     @Override
