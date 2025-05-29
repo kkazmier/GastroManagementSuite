@@ -1,7 +1,6 @@
 package pl.gastro.gastro_management_suite.service;
 
 import lombok.AllArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,6 +16,7 @@ import pl.gastro.gastro_management_suite.util.EmployeeMapper;
 import pl.gastro.gastro_management_suite.util.ResourceNotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,96 +24,89 @@ import java.util.stream.Collectors;
 @Transactional
 public class EmployeeServiceImpl implements EmployeeService, UserDetailsService {
 
-    private final EmployeeRepository repository;
-    private final EmployeeMapper mapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmployeeRepository employeeRepository;
+    private final EmployeeMapper employeeMapper;
+
+    @Override
+    public EmployeeDto findByUsername(String username) {
+        return employeeRepository.findByUsername(username)
+                .map(employeeMapper::toDto)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono użytkownika o nazwie: " + username));
+    }
 
     @Override
     @Transactional(readOnly = true)
     public List<EmployeeDto> findAll() {
-        return repository.findAll()
+        return employeeRepository.findAll()
                 .stream()
-                .map(mapper::toDto)
+                .map(employeeMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public EmployeeDto findById(Long id) {
-        Employee e = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not found"));
-        return mapper.toDto(e);
+        Employee e = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono pracownika o ID: " + id));
+        return employeeMapper.toDto(e);
     }
 
     @Override
     public EmployeeDto create(EmployeeDto dto) {
-        Employee e = mapper.toEntity(dto);
-        Employee saved = repository.save(e);
-        return mapper.toDto(saved);
+        Employee e = employeeMapper.toEntity(dto);
+        Employee saved = employeeRepository.save(e);
+        return employeeMapper.toDto(saved);
     }
 
     @Override
     public EmployeeDto update(Long id, EmployeeDto dto) {
-        Employee existing = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not found"));
-        Employee toSave = mapper.toEntity(dto);
+        Employee existing = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono pracownika o ID: " + id));
+        Employee toSave = employeeMapper.toEntity(dto);
         toSave.setId(existing.getId());
-        Employee updated = repository.save(toSave);
-        return mapper.toDto(updated);
+        Employee updated = employeeRepository.save(toSave);
+        return employeeMapper.toDto(updated);
     }
 
     @Override
     public void deleteById(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ResourceNotFoundException("Not found");
+        if (!employeeRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Nie znaleziono pracownika o ID: " + id);
         }
-        repository.deleteById(id);
-    }
-
-    @Override
-    public EmployeeDto findByUsername(String username) {
-        return null;
+        employeeRepository.deleteById(id);
     }
 
     @Transactional
     public EmployeeDto register(RegisterRequest req) {
-        // 1) Walidacja: unikalność username i email
-        if (repository.existsByFullName(req.getUsername())) {
+        if (employeeRepository.existsByFullName(req.getUsername())) {
             throw new IllegalArgumentException("Username już istnieje: " + req.getUsername());
         }
-        if (repository.existsByEmail(req.getEmail())) {
+        if (employeeRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email już istnieje: " + req.getEmail());
         }
 
-        // 2) Mapowanie DTO -> encja
         Employee employee = new Employee();
         employee.setFullName(req.getUsername());
+        employee.setUsername(req.getUsername());
         employee.setPassword(passwordEncoder.encode(req.getPassword()));
         employee.setEmail(req.getEmail());
 
-        Employee saved = repository.save(employee);
+        Employee saved = employeeRepository.save(employee);
 
-        // 4) Mapowanie encja -> DTO
-        EmployeeDto dto = new EmployeeDto();
-        dto.setId(saved.getId());
-        dto.setFullName(saved.getFullName());
-        dto.setEmail(saved.getEmail());
-
-        // nie przekazujemy hasła!
-
-        return dto;
+        return employeeMapper.toDto(saved);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
-        Employee e = repository
-                .findByUsername(username);
+        Employee e = employeeRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Użytkownik nie istnieje: " + username));
 
         return User.builder()
                 .username(e.getUsername())
                 .password(e.getPassword())
-                //.roles(e.getRole().name())
+                .roles("USER") // lub np. e.getRole().name() jeśli masz role
                 .build();
     }
 }
