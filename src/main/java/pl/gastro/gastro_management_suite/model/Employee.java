@@ -13,15 +13,19 @@ public class Employee extends BaseEntity {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @Column(unique = true, nullable = false)
     private String fullName;
 
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(unique = true)
     private String phone;
 
-    //@Enumerated(EnumType.STRING)
-    //private Role role;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
 
     private String password;
 }

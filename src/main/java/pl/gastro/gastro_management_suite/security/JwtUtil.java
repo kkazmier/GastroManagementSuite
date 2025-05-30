@@ -23,6 +23,14 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim("role", "CHEF")
+
+                /*
+                .claim("role", userDetails.getAuthorities().stream()
+                        .map(auth -> auth.getAuthority())
+                        .findFirst()
+                        .orElse(null))  // dodajemy rolę do claims
+*/
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key, Jwts.SIG.HS256)

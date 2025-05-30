@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import pl.gastro.gastro_management_suite.model.Role;
 
 @RequiredArgsConstructor
 @Configuration
@@ -43,6 +44,8 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        //.requestMatchers("/api/employees/**").hasRole("CHEF")
+                        .requestMatchers("/api/employees/**").permitAll()
                         //.requestMatchers(HttpMethod.GET, "/api/employees").permitAll()
                         .anyRequest().authenticated()
                 )

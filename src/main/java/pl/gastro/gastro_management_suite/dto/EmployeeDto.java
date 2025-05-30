@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 import lombok.Data;
+import pl.gastro.gastro_management_suite.model.Role;
 
 @Data
 public class EmployeeDto {
@@ -16,6 +17,6 @@ public class EmployeeDto {
     //@NotBlank
     private String phone;
     //@NotBlank
-    private String role;
+    private Enum<Role> role;
 
 }

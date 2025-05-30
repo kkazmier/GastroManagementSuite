@@ -91,6 +91,7 @@ public class EmployeeServiceImpl implements EmployeeService, UserDetailsService 
         employee.setUsername(req.getUsername());
         employee.setPassword(passwordEncoder.encode(req.getPassword()));
         employee.setEmail(req.getEmail());
+        employee.setRole(req.getRole());
 
         Employee saved = employeeRepository.save(employee);
 
@@ -106,7 +107,7 @@ public class EmployeeServiceImpl implements EmployeeService, UserDetailsService 
         return User.builder()
                 .username(e.getUsername())
                 .password(e.getPassword())
-                .roles("USER") // lub np. e.getRole().name() jeśli masz role
+                .authorities("ROLE_" + e.getRole())
                 .build();
     }
 }

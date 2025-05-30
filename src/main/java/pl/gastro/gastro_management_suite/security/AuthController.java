@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.gastro.gastro_management_suite.dto.*;
 import pl.gastro.gastro_management_suite.model.Employee;
+import pl.gastro.gastro_management_suite.model.Role;
 import pl.gastro.gastro_management_suite.repository.EmployeeRepository;
 import pl.gastro.gastro_management_suite.service.EmployeeService;
 import pl.gastro.gastro_management_suite.service.EmployeeServiceImpl;
@@ -35,6 +36,7 @@ public class AuthController {
         e.setUsername(req.getUsername());
         e.setFullName(req.getFullName());
         e.setEmail(req.getEmail());
+        e.setRole(Role.CHEF);
 
         String plain = req.getPassword();
         System.out.println("Rejestruję użytkownika" + req.getUsername() +" z haslem: " +plain);
@@ -57,8 +59,13 @@ public class AuthController {
             String token = tokenProvider.generateToken(String.valueOf(auth));
             // Opcjonalnie zwróć też dane użytkownika:
             EmployeeDto userDto = employeeService.findByUsername(req.getUsername());
+            //Role role = (Role) userDto.getRole();
+            Role role = Role.CHEF;
+            System.out.println("Ustawiona rola: " + role);
 
-            return ResponseEntity.ok(new JwtAuthResponse(token, userDto));
+
+
+            return ResponseEntity.ok(new JwtAuthResponse(token, userDto, role));
         } catch (AuthenticationException ex) {
             // 401 Unauthorized, hasło lub użytkownik niepoprawne
             return ResponseEntity
