@@ -8,6 +8,9 @@ import pl.gastro.gastro_management_suite.model.Role;
 @Data
 public class EmployeeRegistrationDto {
     @NotBlank
+    private String username;
+
+    @NotBlank
     private String fullName;
 
     @NotBlank @Email
@@ -19,5 +22,5 @@ public class EmployeeRegistrationDto {
     @NotBlank
     private String password;
 
-    private Enum<Role> role;
+    //private Enum<Role> role;
 }
