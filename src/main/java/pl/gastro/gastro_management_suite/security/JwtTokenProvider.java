@@ -22,12 +22,13 @@ public class JwtTokenProvider {
     public JwtTokenProvider(
             @Value("${jwt.secret}") String base64Secret,
             @Value("${jwt.expiration-ms}") long validityMs) {
-        this.secretKey = Jwts.SIG.HS256.key().build();
+        byte[] keyBytes = Decoders.BASE64.decode(base64Secret);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.validityMs = validityMs;
     }
 
     public String generateToken(String username) {
-        Date now    = new Date();
+        Date now = new Date();
         Date expiry = new Date(now.getTime() + validityMs);
 
         return Jwts.builder()
@@ -39,7 +40,6 @@ public class JwtTokenProvider {
     }
 
     public String getUsernameFromToken(String token) {
-        // Używamy verifyWith(...) zamiast deprecated setSigningKey(...)
         Jws<Claims> jws = Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
@@ -55,7 +55,6 @@ public class JwtTokenProvider {
                     .parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException ex) {
-            // tu możesz zalogować szczegóły błędu, np. log.error("Invalid JWT", ex);
             return false;
         }
     }
