@@ -3,12 +3,15 @@ package pl.gastro.gastro_management_suite.controller;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import pl.gastro.gastro_management_suite.dto.EmployeeDto;
+import pl.gastro.gastro_management_suite.security.EmployeeRegistrationDto;
 import pl.gastro.gastro_management_suite.service.EmployeeService;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -45,4 +48,7 @@ public class EmployeeController {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+
+
 }
