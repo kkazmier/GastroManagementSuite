@@ -12,7 +12,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     boolean existsByEmail(String email);
     Optional<Employee> findByUsername(String username);
 
-    @Query("SELECT e.role FROM Employee e WHERE e.username = ?1")
-    Role findRoleByUsername(String username);
 
 }
