@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Menu restauracji</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="p-3">
+<div class="container">
+    <h1>Menu restauracji</h1>
+
+    <form id="menuForm" class="mb-4">
+        <div class="mb-3">
+            <label for="name" class="form-label">Nazwa dania</label>
+            <input type="text" id="name" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Opis</label>
+            <input type="text" id="description" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label for="price" class="form-label">Cena</label>
+            <input type="number" step="0.01" id="price" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Dodaj danie</button>
+    </form>
+
+    <table class="table table-striped" id="menuTable">
+        <thead>
+        <tr>
+            <th>Nazwa</th>
+            <th>Opis</th>
+            <th>Cena</th>
+            <th>Akcje</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    const apiUrl = '/api/menu-items';
+
+    async function fetchMenu() {
+        const res = await fetch(apiUrl);
+        const items = await res.json();
+        const tbody = document.querySelector('#menuTable tbody');
+        tbody.innerHTML = '';
+        items.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.description}</td>
+                    <td>${item.price.toFixed(2)} zł</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteItem(${item.id})">Usuń</button>
+                    </td>
+                `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function deleteItem(id) {
+        await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+        fetchMenu();
+    }
+
+    document.getElementById('menuForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const name = document.getElementById('name').value;
+        const description = document.getElementById('description').value;
+        const price = parseFloat(document.getElementById('price').value);
+
+        await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, price })
+        });
+
+        e.target.reset();
+        fetchMenu();
+    });
+
+    fetchMenu();
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Zamówienia - Gastro Suite</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+<div class="container">
+  <h1>Zamówienia</h1>
+
+  <div class="mb-3">
+    <label for="itemIds" class="form-label">ID dań (oddzielone przecinkami)</label>
+    <input type="text" class="form-control" id="itemIds" placeholder="np. 1,2,3">
+    <button class="btn btn-primary mt-2" onclick="createOrder()">Utwórz zamówienie</button>
+  </div>
+
+  <hr>
+
+  <h2>Lista zamówień</h2>
+  <ul id="orders" class="list-group"></ul>
+</div>
+
+<script>
+  async function fetchOrders() {
+    const res = await fetch('/api/orders');
+    const orders = await res.json();
+    const list = document.getElementById('orders');
+    list.innerHTML = '';
+
+    orders.forEach(order => {
+      const li = document.createElement('li');
+      li.className = 'list-group-item';
+
+      li.innerHTML = `
+                <strong>Zamówienie #${order.id}</strong><br>
+                Status: ${order.status} <br>
+                Suma: ${order.totalAmount} zł<br>
+                Dania: ${order.items.map(i => `${i.name} (${i.price} zł)`).join(', ')}<br>
+                <input type="number" placeholder="ID dania" id="add-${order.id}">
+                <button class="btn btn-sm btn-success" onclick="addItem(${order.id})">Dodaj danie</button>
+                <button class="btn btn-sm btn-danger" onclick="removeItem(${order.id})">Usuń danie</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${order.id})">Usuń zamówienie</button>
+            `;
+      list.appendChild(li);
+    });
+  }
+
+  async function createOrder() {
+    const ids = document.getElementById('itemIds').value
+            .split(',')
+            .map(id => parseInt(id.trim()))
+            .filter(id => !isNaN(id));
+
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(ids)
+    });
+
+    if (res.ok) {
+      await fetchOrders();
+      document.getElementById('itemIds').value = '';
+    }
+  }
+
+  async function addItem(orderId) {
+    const itemId = document.getElementById(`add-${orderId}`).value;
+    if (!itemId) return;
+
+    await fetch(`/api/orders/${orderId}/add/${itemId}`, { method: 'PUT' });
+    await fetchOrders();
+  }
+
+  async function removeItem(orderId) {
+    const itemId = document.getElementById(`add-${orderId}`).value;
+    if (!itemId) return;
+
+    await fetch(`/api/orders/${orderId}/remove/${itemId}`, { method: 'PUT' });
+    await fetchOrders();
+  }
+
+  async function deleteOrder(id) {
+    await fetch(`/api/orders/${id}`, { method: 'DELETE' });
+    await fetchOrders();
+  }
+
+  fetchOrders();
+</script>
+</body>
+</html>
