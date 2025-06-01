@@ -13,7 +13,7 @@ import pl.gastro.gastro_management_suite.model.Role;
 public class JwtAuthResponse {
     private String token;
     private Object user;
-    private Role role;
+    //private Role role;
 
 
     public static class ErrorResponse {

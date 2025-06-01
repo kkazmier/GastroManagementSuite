@@ -10,13 +10,15 @@ import pl.gastro.gastro_management_suite.model.Role;
 public class EmployeeDto {
     private Long id;
     //@NotBlank
+    private String username;
+
     private String fullName;
     //@Email
-    //@NotBlank
+
     private String email;
-    //@NotBlank
+
     private String phone;
     //@NotBlank
-    private Enum<Role> role;
+    //private Enum<Role> role;
 
 }

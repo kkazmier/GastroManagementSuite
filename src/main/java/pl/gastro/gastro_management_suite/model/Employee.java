@@ -1,6 +1,7 @@
 package pl.gastro.gastro_management_suite.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,20 +12,21 @@ import lombok.Setter;
 @Setter
 public class Employee extends BaseEntity {
     @Column(unique = true, nullable = false)
+    @NotBlank
     private String username;
 
-    @Column(unique = true, nullable = false)
+    @Column()
     private String fullName;
 
-    @Column(unique = true, nullable = false)
+    @Column()
     private String email;
 
-    @Column(unique = true)
+    @Column()
     private String phone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    //@Enumerated(EnumType.STRING)
+    //@Column(nullable = false)
+    //private Role role;
 
 
     private String password;

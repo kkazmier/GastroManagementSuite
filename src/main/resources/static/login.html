@@ -1,25 +1,46 @@
 <!DOCTYPE html>
-<html x-data="auth()" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <title>Logowanie</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <script src="https://unpkg.com/alpinejs" defer></script>
-    <script src="js/auth.js" defer></script>
 </head>
 <body>
-<div class="container">
-    <h2>Logowanie</h2>
-    <template x-if="error">
-        <p class="error" x-text="error"></p>
-    </template>
-    <form @submit.prevent="login()">
-        <label>Nazwa użytkownika:</label>
-        <input type="text" x-model="username" required>
-        <label>Hasło:</label>
-        <input type="password" x-model="password" required>
-        <button type="submit">Zaloguj</button>
-    </form>
-</div>
+<h2>Logowanie</h2>
+<form id="loginForm">
+    <input type="text" name="username" placeholder="Nazwa użytkownika" required><br>
+    <input type="password" name="password" placeholder="Hasło" required><br>
+    <button type="submit">Zaloguj</button>
+    <p id="errorMsg" style="color:red;"></p>
+</form>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const payload = {
+            username: form.username.value,
+            password: form.password.value
+        };
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                document.getElementById('errorMsg').textContent = err.message || 'Błąd logowania';
+            } else {
+                const data = await res.json();
+                localStorage.setItem('jwt', data.token);
+                window.location.href = '/dashboard.html';
+            }
+        } catch (err) {
+            document.getElementById('errorMsg').textContent = 'Błąd połączenia z serwerem';
+        }
+    });
+</script>
 </body>
 </html>

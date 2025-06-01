@@ -78,7 +78,8 @@
   function employeeApp() {
     return {
       employees: [],
-      selected: { id: null, fullName: '', email: '', phone: '', role: '' },
+      //selected: { id: null, fullName: '', email: '', phone: '', role: '' },
+      selected: { id: null, fullName: '', email: '', phone: '' },
       apiUrl: '/api/employees',
       async loadEmployees() {
         try {

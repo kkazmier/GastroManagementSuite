@@ -8,15 +8,18 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import pl.gastro.gastro_management_suite.dto.EmployeeDto;
+import pl.gastro.gastro_management_suite.mapper.EmployeeMapper;
 import pl.gastro.gastro_management_suite.model.Employee;
 import pl.gastro.gastro_management_suite.repository.EmployeeRepository;
+import pl.gastro.gastro_management_suite.security.EmployeeRegistrationDto;
 import pl.gastro.gastro_management_suite.security.RegisterRequest;
-import pl.gastro.gastro_management_suite.util.EmployeeMapper;
 import pl.gastro.gastro_management_suite.util.ResourceNotFoundException;
 
+import jakarta.validation.constraints.NotBlank;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,13 +30,6 @@ public class EmployeeServiceImpl implements EmployeeService, UserDetailsService 
     private final PasswordEncoder passwordEncoder;
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
-
-    @Override
-    public EmployeeDto findByUsername(String username) {
-        return employeeRepository.findByUsername(username)
-                .map(employeeMapper::toDto)
-                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono użytkownika o nazwie: " + username));
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -80,34 +76,39 @@ public class EmployeeServiceImpl implements EmployeeService, UserDetailsService 
     @Transactional
     public EmployeeDto register(RegisterRequest req) {
         if (employeeRepository.existsByFullName(req.getUsername())) {
-            throw new IllegalArgumentException("Username już istnieje: " + req.getUsername());
+            throw new IllegalArgumentException("Nazwa użytkownika już istnieje: " + req.getUsername());
         }
         if (employeeRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email już istnieje: " + req.getEmail());
         }
 
-        Employee employee = new Employee();
-        employee.setFullName(req.getUsername());
-        employee.setUsername(req.getUsername());
-        employee.setPassword(passwordEncoder.encode(req.getPassword()));
-        employee.setEmail(req.getEmail());
-        employee.setRole(req.getRole());
+        // Tworzenie encji z DTO
+        Employee employee = employeeMapper.toEntity(new EmployeeRegistrationDto(
 
+        ));
+
+        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
         Employee saved = employeeRepository.save(employee);
-
         return employeeMapper.toDto(saved);
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username)
-            throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Employee e = employeeRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Użytkownik nie istnieje: " + username));
 
         return User.builder()
                 .username(e.getUsername())
                 .password(e.getPassword())
-                .authorities("ROLE_" + e.getRole())
+                .authorities("ROLE_USER") // lub: "ROLE_" + e.getRole().name()
                 .build();
     }
+
+    @Override
+    public EmployeeDto findByUsername(@NotBlank String username) {
+        Employee employee = employeeRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono użytkownika o nazwie: " + username));
+        return employeeMapper.toDto(employee);
+    }
+
 }

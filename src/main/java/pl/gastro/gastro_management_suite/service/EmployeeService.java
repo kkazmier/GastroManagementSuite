@@ -2,6 +2,7 @@ package pl.gastro.gastro_management_suite.service;
 
 import jakarta.validation.constraints.NotBlank;
 import pl.gastro.gastro_management_suite.dto.EmployeeDto;
+import pl.gastro.gastro_management_suite.security.EmployeeRegistrationDto;
 
 import java.util.List;
 

@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         //.requestMatchers("/api/employees/**").hasRole("CHEF")
                         .requestMatchers("/api/employees/**").permitAll()
+                        .requestMatchers("/**").permitAll()
                         //.requestMatchers(HttpMethod.GET, "/api/employees").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -63,4 +64,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+
 }

@@ -1,33 +1,48 @@
 <!DOCTYPE html>
-<html x-data="auth()" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
   <title>Rejestracja</title>
-  <link rel="stylesheet" href="css/styles.css">
-  <script src="https://unpkg.com/alpinejs" defer></script>
-  <script src="js/auth.js" defer></script>
 </head>
 <body>
-<div class="container">
-  <h2>Rejestracja</h2>
-  <template x-if="error">
-    <p class="error" x-text="error"></p>
-  </template>
-  <form @submit.prevent="register()">
-    <label>Nazwa użytkownika:</label>
-    <input type="text" x-model="username" required>
+<h2>Rejestracja</h2>
+<form id="registerForm">
+  <input type="text" name="username" placeholder="Nazwa użytkownika" required><br>
+  <input type="email" name="email" placeholder="Email" required><br>
+  <input type="text" name="fullName" placeholder="Imię i nazwisko" required><br>
+  <input type="password" name="password" placeholder="Hasło" required><br>
+  <button type="submit">Zarejestruj</button>
+  <p id="errorMsg" style="color:red;"></p>
+</form>
 
-    <label>Hasło:</label>
-    <input type="password" x-model="password" required>
+<script>
+  document.getElementById('registerForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const payload = {
+      username: form.username.value,
+      email: form.email.value,
+      fullName: form.fullName.value,
+      password: form.password.value
+    };
 
-    <label>Imię i nazwisko:</label>
-    <input type="text" x-model="fullName" required>
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
 
-    <label>Email:</label>
-    <input type="email" x-model="email" required>
-
-    <button type="submit">Zarejestruj</button>
-  </form>
-</div>
+      if (!res.ok) {
+        const errText = await res.text();
+        document.getElementById('errorMsg').textContent = errText || 'Błąd rejestracji';
+      } else {
+        window.location.href = '/login.html?registered';
+      }
+    } catch (err) {
+      document.getElementById('errorMsg').textContent = 'Błąd połączenia z serwerem';
+    }
+  });
+</script>
 </body>
 </html>
