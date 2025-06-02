@@ -1,3 +1,4 @@
+<!-- static/dashboard.html -->
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -23,7 +24,6 @@
     </style>
 </head>
 <body>
-<!-- Pasek górny -->
 <nav class="navbar navbar-dark bg-dark top-bar">
     <div class="container-fluid justify-content-between">
         <span class="navbar-text text-white" id="userNameLabel">Witaj, użytkowniku</span>
@@ -31,7 +31,6 @@
     </div>
 </nav>
 
-<!-- Panel przycisków -->
 <div class="container text-center mt-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-10">
@@ -44,7 +43,6 @@
     </div>
 </div>
 
-<!-- Bootstrap & JS -->
 <script>
     async function loadUserData() {
         const token = localStorage.getItem('jwt');
@@ -54,9 +52,6 @@
         }
 
         try {
-            console.log('JWT:', token);
-            console.log('Fetching user with token:', token);
-
             const res = await fetch('/api/users/me', {
                 headers: {
                     'Authorization': 'Bearer ' + token
@@ -68,8 +63,7 @@
             const user = await res.json();
             document.getElementById('userNameLabel').textContent = 'Witaj, ' + user.fullName;
         } catch (e) {
-            console.error('Błąd użytkownika:', e);
-            logout(); // Token może być nieprawidłowy
+            logout();
         }
     }
 
@@ -78,7 +72,6 @@
         window.location.href = '/login.html';
     }
 
-    // Uruchom po załadowaniu strony
     document.addEventListener('DOMContentLoaded', loadUserData);
 </script>
 </body>
