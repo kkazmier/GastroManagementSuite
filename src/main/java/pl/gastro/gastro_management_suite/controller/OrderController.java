@@ -24,8 +24,9 @@ public class OrderController {
     }
 
     @PostMapping
-    public RestaurantOrder create(@RequestBody List<Long> itemIds) {
-        return orderService.createOrder(itemIds);
+    public RestaurantOrder create() {
+        // tworzy zamówienie bez pozycji
+        return orderService.createOrder(List.of());
     }
 
     @PutMapping("/{orderId}/add/{itemId}")

@@ -1,131 +1,129 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Zamówienia - Gastro Suite</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    .order-card {
-      cursor: pointer;
-      transition: transform 0.2s, border 0.2s;
-    }
-    .order-card:hover {
-      transform: scale(1.01);
-    }
-    .order-card.active {
-      border: 2px solid #0d6efd;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body class="p-4">
 <div class="container">
   <a href="dashboard.html" class="btn btn-outline-secondary mb-3">← Powrót do panelu</a>
-  <h1>Zamówienia</h1>
 
-  <!-- Nowe zamówienie -->
-  <button class="btn btn-primary mb-4" onclick="createEmptyOrder()">Nowe zamówienie</button>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Zamówienia</h1>
+    <button id="createOrderBtn" class="btn btn-success">Utwórz nowe zamówienie</button>
+  </div>
 
   <div class="row">
-    <!-- Lewa kolumna: zamówienia -->
-    <div class="col-md-8" id="orders"></div>
+    <!-- Kolumna zamówień -->
+    <div class="col-md-8" id="ordersColumn">
+      <!-- Karty zamówień będą tu wstawiane dynamicznie -->
+    </div>
 
-    <!-- Prawa kolumna: dania -->
+    <!-- Kolumna menu -->
     <div class="col-md-4">
-      <h5>Dodaj danie:</h5>
+      <h4>Menu</h4>
       <div id="menuButtons" class="d-grid gap-2"></div>
     </div>
   </div>
 </div>
 
 <script>
-  let selectedOrderId = null;
+  // Kursy walut pobierane dynamicznie, cache na sesję
+  const exchangeRatesCache = {};
 
+  // Domyślnie dostępne waluty do wyboru
+  const availableCurrencies = ['PLN', 'EUR', 'USD'];
+
+  async function getExchangeRate(currency) {
+    if (currency === 'PLN') return 1; // PLN jako baza
+    if (exchangeRatesCache[currency]) return exchangeRatesCache[currency];
+    try {
+      const res = await fetch(`/api/exchange/${currency}`);
+      if (!res.ok) throw new Error('Błąd pobierania kursu');
+      const rate = await res.json();
+      exchangeRatesCache[currency] = rate;
+      return rate;
+    } catch (e) {
+      alert(`Nie udało się pobrać kursu dla waluty ${currency}. Pozostawiam PLN.`);
+      return 1;
+    }
+  }
+
+  // Rysowanie listy walut w karcie zamówienia
+  function renderCurrencySelector(selectedCurrency) {
+    let html = `<select class="form-select form-select-sm currency-select" style="width: 100px;">`;
+    availableCurrencies.forEach(c => {
+      html += `<option value="${c}"${c === selectedCurrency ? ' selected' : ''}>${c}</option>`;
+    });
+    html += `</select>`;
+    return html;
+  }
+
+  // Ładowanie i rysowanie zamówień
   async function fetchOrders() {
     const res = await fetch('/api/orders');
-    const orders = await res.json();
-    const container = document.getElementById('orders');
-    container.innerHTML = '';
-
-    orders.forEach(order => {
-      const card = document.createElement('div');
-      card.className = `mb-4 order-card card shadow-sm ${order.id === selectedOrderId ? 'active' : ''}`;
-      card.onclick = () => {
-        selectedOrderId = order.id;
-        fetchOrders(); // odśwież z zaznaczoną kartą
-      };
-
-      const itemsHtml = order.items.map(item => `
-        <tr>
-          <td>${item.name}</td>
-          <td>${item.price.toFixed(2)} zł</td>
-          <td>
-            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeItemFromOrder(${order.id}, ${item.id})">Usuń</button>
-          </td>
-        </tr>
-      `).join('');
-
-      card.innerHTML = `
-        <div class="card-header bg-primary text-white">
-          Zamówienie #${order.id} - ${order.status}
-        </div>
-        <div class="card-body">
-          <table class="table table-sm">
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Cena</th>
-                <th>Akcja</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-            </tbody>
-          </table>
-          <p class="fw-bold">Suma: ${order.totalAmount.toFixed(2)} zł</p>
-          <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOrder(${order.id})">Usuń zamówienie</button>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  }
-
-  async function createEmptyOrder() {
-    const res = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '[]' // Pusta lista dań
-    });
-
-    if (res.ok) {
-      const newOrder = await res.json();
-      selectedOrderId = newOrder.id;
-      await fetchOrders();
-    }
-  }
-
-  async function addItemToSelectedOrder(itemId) {
-    if (!selectedOrderId) {
-      alert("Wybierz najpierw zamówienie!");
+    if (!res.ok) {
+      console.error('Błąd pobierania zamówień:', res.status);
       return;
     }
-    await fetch(`/api/orders/${selectedOrderId}/add/${itemId}`, { method: 'PUT' });
-    await fetchOrders();
-  }
+    const orders = await res.json();
+    const ordersColumn = document.getElementById('ordersColumn');
+    ordersColumn.innerHTML = '';
 
-  async function removeItemFromOrder(orderId, itemId) {
-    await fetch(`/api/orders/${orderId}/remove/${itemId}`, { method: 'PUT' });
-    await fetchOrders();
-  }
+    for (const order of orders) {
+      let itemsHtml = '';
+      order.items.forEach(item => {
+        itemsHtml += `
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            ${item.name}
+            <span>
+              ${item.price.toFixed(2)} zł
+              <button class="btn btn-sm btn-danger ms-3" onclick="removeItem(${order.id}, ${item.id})">Usuń</button>
+            </span>
+          </li>`;
+      });
 
-  async function deleteOrder(id) {
-    await fetch(`/api/orders/${id}`, { method: 'DELETE' });
-    if (selectedOrderId === id) selectedOrderId = null;
-    await fetchOrders();
+      // Domyślna waluta - PLN
+      const currencySelector = renderCurrencySelector('PLN');
+
+      const card = document.createElement('div');
+      card.className = 'card mb-3';
+      card.style.cursor = 'default';
+      card.dataset.orderId = order.id;
+
+      card.innerHTML = `
+        <div class="card-body">
+          <h5 class="card-title">Zamówienie #${order.id}</h5>
+          <ul class="list-group mb-3">${itemsHtml || '<li class="list-group-item">Brak pozycji</li>'}</ul>
+          <div class="d-flex align-items-center mb-2">
+            <label class="me-2 mb-0">Waluta:</label>
+            ${currencySelector}
+          </div>
+          <p><strong>Suma:</strong> <span class="order-total" data-pln="${order.totalAmount.toFixed(2)}">${order.totalAmount.toFixed(2)} zł</span></p>
+        </div>
+      `;
+
+      // Obsługa zmiany waluty dla tego zamówienia
+      card.querySelector('.currency-select').addEventListener('change', async e => {
+        const selectedCurrency = e.target.value;
+        const rate = await getExchangeRate(selectedCurrency);
+        const totalPln = parseFloat(card.querySelector('.order-total').dataset.pln);
+        const converted = (totalPln / rate).toFixed(2);
+        card.querySelector('.order-total').textContent = `${converted} ${selectedCurrency}`;
+      });
+
+      ordersColumn.appendChild(card);
+    }
   }
 
   async function fetchMenuItems() {
     const res = await fetch('/api/menu-items');
+    if (!res.ok) {
+      console.error('Błąd pobierania menu:', res.status);
+      return;
+    }
     const items = await res.json();
     const menuDiv = document.getElementById('menuButtons');
     menuDiv.innerHTML = '';
@@ -134,13 +132,75 @@
       const btn = document.createElement('button');
       btn.className = 'btn btn-outline-primary';
       btn.textContent = `${item.name} (${item.price.toFixed(2)} zł)`;
-      btn.onclick = () => addItemToSelectedOrder(item.id);
+      btn.onclick = () => {
+        if (!selectedOrderId) {
+          alert('Wybierz zamówienie, aby dodać danie.');
+          return;
+        }
+        addItem(selectedOrderId, item.id);
+      };
       menuDiv.appendChild(btn);
     });
   }
 
-  fetchOrders();
-  fetchMenuItems();
+  async function createOrder() {
+    const res = await fetch('/api/orders', {
+      method: 'POST'
+    });
+
+    if (!res.ok) {
+      alert('Nie udało się utworzyć nowego zamówienia');
+      return;
+    }
+
+    const newOrder = await res.json();
+    selectedOrderId = newOrder.id;
+    loadAll();
+  }
+
+  async function addItem(orderId, itemId) {
+    const res = await fetch(`/api/orders/${orderId}/add/${itemId}`, { method: 'PUT' });
+    if (!res.ok) {
+      alert('Nie udało się dodać dania do zamówienia');
+      return;
+    }
+    loadAll();
+  }
+
+  async function removeItem(orderId, itemId) {
+    const res = await fetch(`/api/orders/${orderId}/remove/${itemId}`, { method: 'PUT' });
+    if (!res.ok) {
+      alert('Nie udało się usunąć dania z zamówienia');
+      return;
+    }
+    loadAll();
+  }
+
+  let selectedOrderId = null;
+
+  function selectOrder(orderId) {
+    selectedOrderId = orderId;
+    document.querySelectorAll('#ordersColumn .card').forEach(card => {
+      card.style.border = card.dataset.orderId == orderId ? '2px solid #0d6efd' : '';
+    });
+  }
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('.card') && e.target.closest('#ordersColumn')) {
+      const card = e.target.closest('.card');
+      const orderId = parseInt(card.dataset.orderId);
+      selectOrder(orderId);
+    }
+  });
+
+  async function loadAll() {
+    await fetchOrders();
+    await fetchMenuItems();
+  }
+
+  document.getElementById('createOrderBtn').addEventListener('click', createOrder);
+
+  loadAll();
 </script>
 </body>
 </html>
