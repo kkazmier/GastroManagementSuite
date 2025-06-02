@@ -3,89 +3,144 @@
 <head>
   <meta charset="UTF-8">
   <title>Zamówienia - Gastro Suite</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .order-card {
+      cursor: pointer;
+      transition: transform 0.2s, border 0.2s;
+    }
+    .order-card:hover {
+      transform: scale(1.01);
+    }
+    .order-card.active {
+      border: 2px solid #0d6efd;
+    }
+  </style>
 </head>
 <body class="p-4">
 <div class="container">
+  <a href="dashboard.html" class="btn btn-outline-secondary mb-3">← Powrót do panelu</a>
   <h1>Zamówienia</h1>
 
-  <div class="mb-3">
-    <label for="itemIds" class="form-label">ID dań (oddzielone przecinkami)</label>
-    <input type="text" class="form-control" id="itemIds" placeholder="np. 1,2,3">
-    <button class="btn btn-primary mt-2" onclick="createOrder()">Utwórz zamówienie</button>
+  <!-- Nowe zamówienie -->
+  <button class="btn btn-primary mb-4" onclick="createEmptyOrder()">Nowe zamówienie</button>
+
+  <div class="row">
+    <!-- Lewa kolumna: zamówienia -->
+    <div class="col-md-8" id="orders"></div>
+
+    <!-- Prawa kolumna: dania -->
+    <div class="col-md-4">
+      <h5>Dodaj danie:</h5>
+      <div id="menuButtons" class="d-grid gap-2"></div>
+    </div>
   </div>
-
-  <hr>
-
-  <h2>Lista zamówień</h2>
-  <ul id="orders" class="list-group"></ul>
 </div>
 
 <script>
+  let selectedOrderId = null;
+
   async function fetchOrders() {
     const res = await fetch('/api/orders');
     const orders = await res.json();
-    const list = document.getElementById('orders');
-    list.innerHTML = '';
+    const container = document.getElementById('orders');
+    container.innerHTML = '';
 
     orders.forEach(order => {
-      const li = document.createElement('li');
-      li.className = 'list-group-item';
+      const card = document.createElement('div');
+      card.className = `mb-4 order-card card shadow-sm ${order.id === selectedOrderId ? 'active' : ''}`;
+      card.onclick = () => {
+        selectedOrderId = order.id;
+        fetchOrders(); // odśwież z zaznaczoną kartą
+      };
 
-      li.innerHTML = `
-                <strong>Zamówienie #${order.id}</strong><br>
-                Status: ${order.status} <br>
-                Suma: ${order.totalAmount} zł<br>
-                Dania: ${order.items.map(i => `${i.name} (${i.price} zł)`).join(', ')}<br>
-                <input type="number" placeholder="ID dania" id="add-${order.id}">
-                <button class="btn btn-sm btn-success" onclick="addItem(${order.id})">Dodaj danie</button>
-                <button class="btn btn-sm btn-danger" onclick="removeItem(${order.id})">Usuń danie</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder(${order.id})">Usuń zamówienie</button>
-            `;
-      list.appendChild(li);
+      const itemsHtml = order.items.map(item => `
+        <tr>
+          <td>${item.name}</td>
+          <td>${item.price.toFixed(2)} zł</td>
+          <td>
+            <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); removeItemFromOrder(${order.id}, ${item.id})">Usuń</button>
+          </td>
+        </tr>
+      `).join('');
+
+      card.innerHTML = `
+        <div class="card-header bg-primary text-white">
+          Zamówienie #${order.id} - ${order.status}
+        </div>
+        <div class="card-body">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Nazwa</th>
+                <th>Cena</th>
+                <th>Akcja</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          <p class="fw-bold">Suma: ${order.totalAmount.toFixed(2)} zł</p>
+          <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteOrder(${order.id})">Usuń zamówienie</button>
+        </div>
+      `;
+      container.appendChild(card);
     });
   }
 
-  async function createOrder() {
-    const ids = document.getElementById('itemIds').value
-            .split(',')
-            .map(id => parseInt(id.trim()))
-            .filter(id => !isNaN(id));
-
+  async function createEmptyOrder() {
     const res = await fetch('/api/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(ids)
+      body: '[]' // Pusta lista dań
     });
 
     if (res.ok) {
+      const newOrder = await res.json();
+      selectedOrderId = newOrder.id;
       await fetchOrders();
-      document.getElementById('itemIds').value = '';
     }
   }
 
-  async function addItem(orderId) {
-    const itemId = document.getElementById(`add-${orderId}`).value;
-    if (!itemId) return;
-
-    await fetch(`/api/orders/${orderId}/add/${itemId}`, { method: 'PUT' });
+  async function addItemToSelectedOrder(itemId) {
+    if (!selectedOrderId) {
+      alert("Wybierz najpierw zamówienie!");
+      return;
+    }
+    await fetch(`/api/orders/${selectedOrderId}/add/${itemId}`, { method: 'PUT' });
     await fetchOrders();
   }
 
-  async function removeItem(orderId) {
-    const itemId = document.getElementById(`add-${orderId}`).value;
-    if (!itemId) return;
-
+  async function removeItemFromOrder(orderId, itemId) {
     await fetch(`/api/orders/${orderId}/remove/${itemId}`, { method: 'PUT' });
     await fetchOrders();
   }
 
   async function deleteOrder(id) {
     await fetch(`/api/orders/${id}`, { method: 'DELETE' });
+    if (selectedOrderId === id) selectedOrderId = null;
     await fetchOrders();
   }
 
+  async function fetchMenuItems() {
+    const res = await fetch('/api/menu-items');
+    const items = await res.json();
+    const menuDiv = document.getElementById('menuButtons');
+    menuDiv.innerHTML = '';
+
+    items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-outline-primary';
+      btn.textContent = `${item.name} (${item.price.toFixed(2)} zł)`;
+      btn.onclick = () => addItemToSelectedOrder(item.id);
+      menuDiv.appendChild(btn);
+    });
+  }
+
   fetchOrders();
+  fetchMenuItems();
 </script>
 </body>
 </html>
