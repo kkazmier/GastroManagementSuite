@@ -33,17 +33,18 @@ public class EmployeeMapper {
         return e;
     }
 
-    // Konwersja z Employee na EmployeeDto (do wyświetlania)
     public EmployeeDto toDto(Employee e) {
         if (e == null) return null;
 
         EmployeeDto dto = new EmployeeDto();
         dto.setId(e.getId());
         dto.setUsername(e.getUsername());
+        dto.setFullName(e.getFullName());
         dto.setEmail(e.getEmail());
         dto.setPhone(e.getPhone());
         return dto;
     }
+
 
     // Konwersja z Employee na EmployeeRegistrationDto (pełne dane użytkownika)
     public EmployeeRegistrationDto toRegistrationDto(Employee e) {
