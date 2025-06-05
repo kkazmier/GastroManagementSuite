@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Mapa Dostaw</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+<div class="container my-3">
+  <button class="btn btn-secondary" onclick="location.href='dashboard.html'">← Powrót do Panelu</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+  const map = L.map('map').setView([52.2297, 21.0122], 6); // Domyślnie Polska
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 18,
+  }).addTo(map);
+
+  async function loadDeliveries() {
+    const res = await fetch('/api/deliveries', {
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+      }
+    });
+
+    if (!res.ok) {
+      alert('Błąd ładowania dostaw');
+      return;
+    }
+
+    const deliveries = await res.json();
+
+    deliveries.forEach(delivery => {
+      const addr = delivery.address;
+      if (addr.latitude && addr.longitude) {
+        const marker = L.marker([addr.latitude, addr.longitude]).addTo(map);
+        marker.bindPopup(`
+    <div>
+        <strong>Dostawa #${delivery.id}</strong><br>
+        ${addr.street}<br>
+        ${addr.postalCode} ${addr.city}<br>
+        ${addr.country}<br><br>
+        <a href="delivery-details.html?id=${delivery.id}" class="btn btn-sm btn-primary">Szczegóły</a>
+    </div>
+`);
+
+      }
+    });
+  }
+
+  loadDeliveries();
+</script>
+</body>
+</html>
