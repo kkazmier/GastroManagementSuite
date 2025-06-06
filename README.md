@@ -1,94 +1,134 @@
 # GastroManagementSuite
 
-**GastroManagementSuite** is a comprehensive restaurant management application following a client-server architecture. The backend is built with **Spring Boot** (JPA, REST API), while the desktop client is implemented using **JavaFX**.
+**GastroManagementSuite** is a web-based restaurant management application. It allows managing employees, orders, menu items, and deliveries. Built with Spring Boot, it uses an in-memory H2 database and integrates with external APIs such as LocationIQ for address geolocation and the National Bank of Poland (NBP) API for currency exchange rates.
 
-## 📂 Project Structure
+## 📌 Table of Contents
+
+- [Technologies](#technologies)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Running the Application](#running-the-application)
+- [Project Structure](#project-structure)
+- [External APIs](#external-apis)
+- [Testing](#testing)
+- [Author](#author)
+
+## 🛠 Technologies
+
+- Java 17
+- Spring Boot
+- Spring Data JPA
+- Spring Security
+- H2 Database
+- RESTful API
+- Static HTML/CSS/JS views
+- LocationIQ API
+- NBP Web API
+
+## ✅ Features
+
+- Employee management (CRUD)
+- Menu item and order management
+- Delivery tracking with geolocation (map + coordinates)
+- Currency conversion using NBP exchange rates
+- Token-based authentication (JWT)
+- Custom HTTP error handling (400, 401, 403, 404)
+
+## 🧰 Requirements
+
+- Java 17 or higher
+- Maven
+- Internet connection (for external APIs)
+
+## ▶️ Running the Application
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/kkazmier/GastroManagementSuite.git
+   ```
+
+2. Navigate to the project directory:
+
+   ```bash
+   cd GastroManagementSuite
+   ```
+
+3. Run the application with Maven:
+
+   ```bash
+   mvn spring-boot:run
+   ```
+
+4. Open your browser at: [http://localhost:8082](http://localhost:8082)
+
+## 🗂 Project Structure
 
 ```
 GastroManagementSuite/
-├── spring-backend/         # Spring Boot project (REST API, JPA)
-│   ├── src/main/java/...   # Java source files
-│   └── pom.xml             # Maven build file
-├── javafx-client/          # JavaFX project (desktop client)
-│   ├── src/main/java/...   # Java source files
-│   └── build.gradle        # Gradle build file
-└── README.md               # This file
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── pl/gastro/gastro_management_suite/
+│   │   │       ├── controller/       # REST controllers
+│   │   │       ├── model/            # Entities
+│   │   │       ├── repository/       # JPA repositories
+│   │   │       ├── service/          # Business logic
+│   │   │       ├── security/         # JWT + auth config
+│   │   │       └── exception/        # Global error handling
+│   │   └── resources/
+│   │       ├── static/               # Static views (HTML/JS/CSS)
+│   │       └── application.properties
+├── pom.xml
+└── README.md
 ```
 
-## 🚀 Getting Started
+## 🌍 External APIs
 
-### 1. Backend (Spring Boot)
+### 🌐 LocationIQ API
 
-1. Navigate to the `spring-backend` directory:
+Used to convert delivery addresses into geographic coordinates (latitude, longitude).
 
-   ```bash
-   cd spring-backend
-   ```
-2. Build and run the application with Maven:
+To enable it, set your API key in `application.properties`:
 
-   ```bash
-   mvn clean package
-   mvn spring-boot:run
-   ```
-3. The REST API will start on port `8082`. Example endpoint:
-
-   ```
-   GET http://localhost:8082/
-   ```
-
-### 2. Frontend (JavaFX)
-
-#### Option A: Gradle wrapper
-
-1. Navigate to the `javafx-client` directory:
-
-   ```bash
-   cd javafx-client
-   ```
-2. Run the client:
-
-   ```bash
-   ./gradlew run
-   ```
-
-#### Option B: IntelliJ IDEA
-
-1. Open the `javafx-client` project in IntelliJ.
-2. Add the JavaFX SDK as a library (File → Project Structure → Libraries).
-3. Configure a Run configuration:
-
-   * Main class: `Main`
-   * VM options:
-
-     ```text
-     --module-path /path/to/javafx-sdk/lib --add-modules javafx.controls
-     ```
-4. Run the newly created configuration.
-
-## ⚙️ Configuration
-
-By default, the JavaFX client expects the backend at:
-
-```
-http://localhost:8080/api/hello
+```properties
+locationiq.api.key=YOUR_API_KEY
 ```
 
-## 🧩 Technologies
+More info: [https://locationiq.com](https://locationiq.com)
 
-**Backend**
+### 🇵🇱 NBP Web API
 
-* Java 17+
-* Spring Boot
-* Spring Data JPA / Hibernate
-* Maven
-* LocationIQ REST API
+Used to fetch up-to-date currency exchange rates (e.g. for converting order totals to EUR/USD).
 
-**Frontend**
+Sample request:
 
-* Java 17+
-* JavaFX 21
-* Gradle
+```
+GET https://api.nbp.pl/api/exchangerates/rates/A/{currency}/?format=json
+```
 
-## 📄 License
+Documentation: [NBP Web API](https://api.nbp.pl/)
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+## 🧪 Testing
+
+The project uses:
+
+- **JUnit 5**
+- **Mockito**
+- **Spring Boot Test**
+
+To run tests:
+
+```bash
+mvn test
+```
+
+Unit and integration tests cover services and controllers to ensure correctness and reliability.
+
+## 👤 Author
+
+- GitHub: [@kkazmier](https://github.com/kkazmier)
+
+---
+
+Feel free to fork the project or open issues/PRs. Contributions are welcome!
