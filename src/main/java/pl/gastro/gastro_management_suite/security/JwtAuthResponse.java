@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import pl.gastro.gastro_management_suite.model.Role;
 
 @Getter
 @Setter
@@ -19,6 +18,5 @@ public class JwtAuthResponse {
     public static class ErrorResponse {
         private String message;
         public ErrorResponse(String message) { this.message = message; }
-        public String getMessage() { return message; }
     }
 }

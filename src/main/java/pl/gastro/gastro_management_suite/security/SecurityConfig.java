@@ -22,7 +22,6 @@ import pl.gastro.gastro_management_suite.model.Role;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    //private final JwtAuthenticationFilter jwtFilter;
     private final AuthenticationConfiguration authConfig;
 
     @Bean
@@ -44,10 +43,10 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        //.requestMatchers("/api/employees/**").hasRole("CHEF")
-                        .requestMatchers("/api/employees/**").permitAll()
+                        .requestMatchers("/login.html").permitAll()
+                        .requestMatchers("/register.html").permitAll()
+                        .requestMatchers("/index.html").permitAll()
                         .requestMatchers("/**").permitAll()
-                        //.requestMatchers(HttpMethod.GET, "/api/employees").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

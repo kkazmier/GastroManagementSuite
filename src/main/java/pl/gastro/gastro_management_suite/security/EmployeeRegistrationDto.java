@@ -21,6 +21,4 @@ public class EmployeeRegistrationDto {
 
     @NotBlank
     private String password;
-
-    //private Enum<Role> role;
 }

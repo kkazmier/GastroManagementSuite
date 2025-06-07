@@ -44,18 +44,4 @@ public class EmployeeMapper {
         dto.setPhone(e.getPhone());
         return dto;
     }
-
-
-    // Konwersja z Employee na EmployeeRegistrationDto (pełne dane użytkownika)
-    public EmployeeRegistrationDto toRegistrationDto(Employee e) {
-        if (e == null) return null;
-
-        EmployeeRegistrationDto dto = new EmployeeRegistrationDto();
-        dto.setUsername(e.getUsername());
-        dto.setFullName(e.getFullName());
-        dto.setEmail(e.getEmail());
-        dto.setPhone(e.getPhone());
-        dto.setPassword(e.getPassword()); // Uwaga: to będzie hash! Tylko jeśli potrzebujesz!
-        return dto;
-    }
 }

@@ -19,5 +19,4 @@ public class RegisterRequest {
 
     @NotBlank
     private String email;
-    //private Role role;
 }
