@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import pl.gastro.gastro_management_suite.service.EmployeeService;
 @RequestMapping("/api/auth")
 @AllArgsConstructor
 public class AuthController {
-    private final AuthService authService;
     private final PasswordEncoder passwordEncoder;
     private final EmployeeService employeeService;
     private final AuthenticationManager authManager;
@@ -42,7 +40,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
         try {
-            Authentication auth = authManager.authenticate(
+            authManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             req.getUsername(),
                             req.getPassword()
